@@ -1,148 +1,72 @@
 ﻿using Northwind_WebAPI.Entities;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
-using System.Data.Common;
 using System.Data.SqlClient;
 
-namespace NorthWind_WebAPI.DataAccess
+namespace Northwind_WebAPI.DataAccess
 {
     public class Repository
     {
-        #region Fields and constants
-        const string connectionStringName = "NorthwindDB";
-        #endregion
+        const string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Northwind;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
 
-
-        #region Constructors
-        /// <summary>
-        /// Initializes a new instance of Repository. Attempts to establish a connection, and will throw an exception on connection error.
-        /// </summary>
-        public Repository()
+        public List<Invoice> GetAllInvoices(string customerID)
         {
-            try
-            {
-                SqlConnection connection = GetConnection(connectionStringName) as SqlConnection;
-                (bool, Exception) connectionAttemptResult = TryConnectUsing(connection);
-            }
-            catch(Exception e)
-            {
-                throw new Exception("Data access error. See inner exception for details", e);
-            }
+            string sql = $"SELECT CustomerName, ExtendedPrice, Freight FROM Invoices WHERE CustomerID LIKE '{customerID}'";
+            DataRowCollection dataRows = Execute(sql);
+            List<Invoice> invoices = ProcessInvoices(dataRows);
+            return invoices;
         }
-        #endregion
 
-
-        #region Helper Methods
-        /// <summary>
-        /// Executes the provided SQL statement and returns data wrapped in a data set, if any.
-        /// </summary>
-        /// <param name="sql">The SQL statement to execute.</param>
-        /// <returns>A <see cref="DataSet"/> wrapping any returned data.</returns>
-        /// <exception cref="ArgumentException"/>
-        /// <exception cref=""
-        public DataSet Execute(string sql)
+        public List<Customer> GetAllCustomers()
         {
-            if(String.IsNullOrWhiteSpace(sql))
-            {
-                throw new ArgumentException("Null or whitespace.");
-            }
-            DataSet resultSet = new DataSet();
+            string sql = "SELECT DISTINCT CustomerID FROM Customers";
+            DataRowCollection dataRows = Execute(sql);
+            List<Customer> customers = ProcessCustomers(dataRows);
+            return customers;
+        }
+
+        private DataRowCollection Execute(string sql)
+        {
             try
             {
-                SqlConnection connection = GetConnection(connectionStringName) as SqlConnection;
-                using(SqlDataAdapter adapter = new SqlDataAdapter(new SqlCommand(sql, connection)))
+                DataSet resultSet = new DataSet();
+                using(SqlDataAdapter adapter = new SqlDataAdapter(new SqlCommand(sql, new SqlConnection(ConnectionString))))
                 {
                     adapter.Fill(resultSet);
                 }
-                return resultSet;
-            }
-            catch(Exception e)
-            {
-                throw new Exception("Data access error. See inner exception for details", e);
-            }
-        }
-
-        /// <summary>
-        /// Creates a connection based on the name of a connection string that is stored in a config file.
-        /// </summary>
-        /// <param name="name">The name of the connection string.</param>
-        /// <returns>A new connection.</returns>
-        private static DbConnection GetConnection(string name)
-        {
-            ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[name];
-            DbProviderFactory factory = DbProviderFactories.GetFactory(settings.ProviderName);
-            DbConnection connection = factory.CreateConnection();
-            connection.ConnectionString = settings.ConnectionString;
-            return connection;
-        }
-
-        /// <summary>
-        /// Attempts to connect to a data source using the provided connection.
-        /// </summary>
-        /// <param name="connection">The connection to use.</param>
-        /// <returns>True, if the connection could be established, false otherwise.</returns>
-        public (bool, Exception) TryConnectUsing(DbConnection connection)
-        {
-            try
-            {
-                using(connection)
-                {
-                    connection.Open();
-                    connection.Close();
-                }
-                return (true, null);
-            }
-            catch(Exception e)
-            {
-                return (false, e);
-            }
-        }
-
-        /// <summary>
-        /// Extract all data relevant to an employee from a dat row object, and return an employee object.
-        /// </summary>
-        /// <param name="dataRow"></param>
-        /// <returns></returns>
-        private static Invoice ExtractFrom(DataRow dataRow)
-        {
-            int id = (int)dataRow["ID"];
-            //Invoice invoice = new Invoice() { Id = id};
-            return invoice;
-        }
-        #endregion
-
-
-        #region Repository Methods
-        /// <summary>
-        /// Gets all employees.
-        /// </summary>
-        /// <returns>A list of all employees</returns>
-        public List<Invoice> GetAllInvoices()
-        {
-            List<Invoice> invoices = new List<Invoice>();
-            string sql = "SELECT * FROM Invoices";
-            DataSet resultSet;
-            try
-            {
-                resultSet = Execute(sql);
+                return resultSet.Tables[0].Rows;
             }
             catch(Exception)
             {
                 throw;
             }
+        }
 
-            if(resultSet.Tables.Count > 0 && resultSet.Tables[0].Rows.Count > 0)
+        private List<Customer> ProcessCustomers(DataRowCollection dataRows)
+        {
+            List<Customer> customers = new List<Customer>();
+            foreach(DataRow row in dataRows)
             {
-                foreach(DataRow dataRow in resultSet.Tables[0].Rows)
-                {
-                    Invoice invoice = ExtractFrom(dataRow);
-                    invoices.Add(invoice);
-                }
+                string customerName = (string)row["CustomerID"];
+                Customer customer = new Customer() { CustomerName = customerName };
+                customers.Add(customer);
+            }
+            return customers;
+        }
+
+        private List<Invoice> ProcessInvoices(DataRowCollection dataRows)
+        {
+            List<Invoice> invoices = new List<Invoice>();
+            foreach(DataRow row in dataRows)
+            {
+                string customerName = (string)row["CustomerName"];
+                decimal extendedPrice = (decimal)row["ExtendedPrice"];
+                decimal freightPrice = (decimal)row["Freight"];
+                Invoice invoice = new Invoice(customerName, extendedPrice, freightPrice);
+                invoices.Add(invoice);
             }
             return invoices;
         }
-        #endregion
     }
 }
