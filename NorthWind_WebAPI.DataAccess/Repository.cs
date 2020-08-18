@@ -26,6 +26,32 @@ namespace Northwind_WebAPI.DataAccess
             return customers;
         }
 
+        public List<Order> GetAllOrders(string customerID)
+        {
+            string sql = $"SELECT CustomerID, OrderDate, RequiredDate, ShippedDate, ShipAddress, ShipCountry" +
+                $" FROM Orders WHERE CustomerID LIKE '{customerID}'";
+            DataRowCollection datarows = Execute(sql);
+            List<Order> orders = ProcessOrders(datarows);
+            return orders;
+        }
+
+        private List<Order> ProcessOrders(DataRowCollection datarows)
+        {
+            List<Order> orders = new List<Order>();
+            foreach(DataRow row in datarows)
+            {
+                string customerID = (string)row["CustomerID"];
+                DateTime orderDate = (DateTime)row["OrderDate"];
+                DateTime requiredDate = (DateTime)row["RequiredDate"];
+                DateTime shippedDate = (DateTime)row["ShippedDate"];
+                string shipAddress = (string)row["ShipAddress"];
+                string shipCountry = (string)row["ShipCountry"];
+                Order order = new Order(customerID, orderDate, requiredDate, shippedDate, shipAddress, shipCountry);
+                orders.Add(order);
+            }
+            return orders;
+        }
+
         private DataRowCollection Execute(string sql)
         {
             try
