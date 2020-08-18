@@ -13,6 +13,7 @@ namespace API.Controllers
     public class OrderController: ControllerBase
     {
         [HttpGet("{isShipped}/{customerId}")]
+        //Type true in the URL to display completed orders, type false for non-completed ones
         public List<Order> GetAll(bool isShipped, string customerID)
         {
                 List<Order> orders = new Repository().GetAllOrders(customerID);
