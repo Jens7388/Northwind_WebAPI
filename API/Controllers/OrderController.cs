@@ -12,11 +12,32 @@ namespace API.Controllers
     [ApiController]
     public class OrderController: ControllerBase
     {
-        [HttpGet("{customerId}")]
-        public List<Order> GetAll(string customerID)
+        [HttpGet("{isShipped}/{customerId}")]
+        public List<Order> GetAll(bool isShipped, string customerID)
         {
-            List<Order> orders = new Repository().GetAllOrders(customerID);
-            return orders;
+                List<Order> orders = new Repository().GetAllOrders(customerID);
+                List<Order> completedOrders = new List<Order>();
+                List<Order> nonCompletedOrders = new List<Order>();
+                foreach(Order order in orders)
+                {
+                    if(order.IsShipped)
+                    {
+                        completedOrders.Add(order);
+                        
+                    }
+                    else
+                    {
+                        nonCompletedOrders.Add(order);
+                    }
+                }
+                if(isShipped)
+                {
+                    return completedOrders;
+                }
+                else
+                {
+                    return nonCompletedOrders;
+                }           
         }
     }
 }

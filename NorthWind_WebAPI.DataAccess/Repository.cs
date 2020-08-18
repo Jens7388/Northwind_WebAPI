@@ -43,7 +43,7 @@ namespace Northwind_WebAPI.DataAccess
                 string customerID = (string)row["CustomerID"];
                 DateTime orderDate = (DateTime)row["OrderDate"];
                 DateTime requiredDate = (DateTime)row["RequiredDate"];
-                DateTime shippedDate = (DateTime)row["ShippedDate"];
+                DateTime shippedDate = Convert.IsDBNull(row["ShippedDate"]) ? DateTime.MinValue : (DateTime)row["ShippedDate"];
                 string shipAddress = (string)row["ShipAddress"];
                 string shipCountry = (string)row["ShipCountry"];
                 Order order = new Order(customerID, orderDate, requiredDate, shippedDate, shipAddress, shipCountry);

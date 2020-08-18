@@ -6,13 +6,13 @@ namespace Northwind_WebAPI.Entities
 {
     public class Order
     {
-        private string customerID;
-        private DateTime orderDate;
-        private DateTime requiredDate;
-        private DateTime shippedDate;
-        private string shipAddress;
-        private string shipCountry;
-        private bool isShipped;
+        protected string customerID;
+        protected DateTime orderDate;
+        protected DateTime requiredDate;
+        protected DateTime shippedDate;
+        protected string shipAddress;
+        protected string shipCountry;
+        protected bool isShipped;
 
         public Order(string customerID, DateTime orderDate, DateTime requiredDate, 
             DateTime shippedDate, string shipAddress, string shipCountry)
@@ -23,7 +23,7 @@ namespace Northwind_WebAPI.Entities
             ShippedDate = shippedDate;
             ShipAddress = shipAddress;
             ShipCountry = shipCountry;
-            IsShipped = shippedDate == default;
+            IsShipped = shippedDate != default;
         }
 
         public string CustomerID
@@ -87,7 +87,7 @@ namespace Northwind_WebAPI.Entities
 
             set
             {
-                shipAddress = value;
+                 shipAddress = value;
             }
         }
 
