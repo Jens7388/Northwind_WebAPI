@@ -26,10 +26,17 @@ namespace Northwind_WebAPI.DataAccess
             return customers;
         }
 
-        public List<Order> GetAllOrders(string customerID)
+        public List<Order> GetAllCompletedOrders(string customerID)
         {
-            string sql = $"SELECT CustomerID, OrderDate, RequiredDate, ShippedDate, ShipAddress, ShipCountry" +
-                $" FROM Orders WHERE CustomerID LIKE '{customerID}'";
+            string sql = $"SELECT CustomerID, OrderDate, RequiredDate, ShippedDate, ShipAddress, ShipCountry FROM Orders WHERE ShippedDate IS NOT NULL AND CustomerID = '{customerID}'";
+            DataRowCollection datarows = Execute(sql);
+            List<Order> orders = ProcessOrders(datarows);
+            return orders;
+        }
+
+        public List<Order> GetAllNonCompletedOrders(string customerID)
+        {
+            string sql = $"SELECT CustomerID, OrderDate, RequiredDate, ShippedDate, ShipAddress, ShipCountry FROM Orders WHERE ShippedDate IS NULL AND CustomerID = '{customerID}'";
             DataRowCollection datarows = Execute(sql);
             List<Order> orders = ProcessOrders(datarows);
             return orders;

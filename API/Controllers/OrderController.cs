@@ -12,33 +12,16 @@ namespace API.Controllers
     [ApiController]
     public class OrderController: ControllerBase
     {
-        [HttpGet("{isShipped}/{customerId}")]
-        //Type true in the URL to display completed orders, type false for non-completed ones
-        public List<Order> GetAll(bool isShipped, string customerID)
+        [HttpGet("completed/{customerId}")]
+        public List<Order> GetCompletedOrders(string customerID)
         {
-                List<Order> orders = new Repository().GetAllOrders(customerID);
-                List<Order> completedOrders = new List<Order>();
-                List<Order> nonCompletedOrders = new List<Order>();
-                foreach(Order order in orders)
-                {
-                    if(order.IsShipped)
-                    {
-                        completedOrders.Add(order);
-                        
-                    }
-                    else
-                    {
-                        nonCompletedOrders.Add(order);
-                    }
-                }
-                if(isShipped)
-                {
-                    return completedOrders;
-                }
-                else
-                {
-                    return nonCompletedOrders;
-                }           
+             return new Repository().GetAllCompletedOrders(customerID);
+        }
+
+        [HttpGet("pending/{customerId}")]
+        public List<Order> GetNonCompletedOrders(string customerID)
+        {
+            return new Repository().GetAllNonCompletedOrders(customerID);
         }
     }
 }
